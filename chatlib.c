@@ -41,14 +41,20 @@ int createTCPServer(int port) {
     int s, yes = 1;
     struct sockaddr_in sa;
 
+    // AF_INET IPV4因特网域
     if ((s = socket(AF_INET, SOCK_STREAM, 0)) == -1) return -1;
+    // SO_REUSEADDR 如果*val非0 重用bind中的地址
     setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)); // Best effort.
 
     memset(&sa,0,sizeof(sa));
     sa.sin_family = AF_INET;
+    // htons返回值:以网络字节序表示的16位整数
     sa.sin_port = htons(port);
+    // htons返回值:以网络字节序表示的32位整数
+    // INADDR_ANY:Address to accept any incoming messages.
     sa.sin_addr.s_addr = htonl(INADDR_ANY);
 
+    // 将socket与地址关联起来
     if (bind(s,(struct sockaddr*)&sa,sizeof(sa)) == -1 ||
         listen(s, 511) == -1)
     {
@@ -71,6 +77,7 @@ int TCPConnect(char *addr, int port, int nonblock) {
     snprintf(portstr,sizeof(portstr),"%d",port);
     memset(&hints,0,sizeof(hints));
     hints.ai_family = AF_UNSPEC;
+    // SOCK_STREAM的默认协议是tcp
     hints.ai_socktype = SOCK_STREAM;
 
     // addr:127.0.0.1
@@ -94,6 +101,7 @@ int TCPConnect(char *addr, int port, int nonblock) {
         if (connect(s,p->ai_addr,p->ai_addrlen) == -1) {
             /* If the socket is non-blocking, it is ok for connect() to
              * return an EINPROGRESS error here. */
+            // 类似于windows的GetLastError
             if (errno == EINPROGRESS && nonblock) return s;
 
             /* Otherwise it's an error. */
