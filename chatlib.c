@@ -26,7 +26,9 @@ int socketSetNonBlockNoDelay(int fd) {
     /* Set the socket nonblocking.
      * Note that fcntl(2) for F_GETFL and F_SETFL can't be
      * interrupted by a signal. */
+    // 获取fd的flag
     if ((flags = fcntl(fd, F_GETFL)) == -1) return -1;
+    // 设置fd的flag,设置套接字为非阻塞模式，这样read或recv操作不会阻塞，而是会立即返回，如果没有数据可读。
     if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) return -1;
 
     /* This is best-effort. No need to check for errors. */
@@ -65,13 +67,14 @@ int createTCPServer(int port) {
 int TCPConnect(char *addr, int port, int nonblock) {
     int s, retval = -1;
     struct addrinfo hints, *servinfo, *p;
-
     char portstr[6]; /* Max 16 bit number string length. */
     snprintf(portstr,sizeof(portstr),"%d",port);
     memset(&hints,0,sizeof(hints));
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
+    // addr:127.0.0.1
+    // portstr:7711
     if (getaddrinfo(addr,portstr,&hints,&servinfo) != 0) return -1;
 
     for (p = servinfo; p != NULL; p = p->ai_next) {
